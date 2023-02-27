@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
-const bcrypt = require("bcrypt");
-
+const bcrypt = require("bcrypt");// lal 2esas lt2ili metel password whashing mnesta3mel bc
+const crypto = require("crypto"); // lal 2esas l5afife whiyye built in bel nodejs
 const userSchema = new mongoose.Schema(
   {
     fullName: {
@@ -30,6 +30,10 @@ const userSchema = new mongoose.Schema(
       minlength: [8, "Minimum password length is 8 characters"],
       maxlength: [30, "Maximum password length is 30 characters"],
     },
+    passwordChangeAt: Date,
+    passwordResetToken: String,
+    passwordResetExpires:Date,
+
   },
   { timestamps: true }
 );
@@ -55,6 +59,22 @@ userSchema.methods.checkPassword = async function (
   userPassword
 ) {
   return await bcrypt.compare(enteredPassword, userPassword);
+};
+
+// This function will create a random reset token
+userSchema.methods.generatePasswordResetToken = function(){
+  const resetToken = crypto.randomBytes(32).toString("hex"); // will be sent via email
+
+  //saved in the DB in a hashed way
+  this.passwordResetToken = crypto
+  .createHash("sha256")
+  .update(resetToken)
+  .digest("hex");
+
+  // 10 min of validity
+  this.passwordResetExpires = Date.now() + 10 * 60 * 1000;
+
+  return resetToken;
 };
 
 module.exports = mongoose.model("User", userSchema);

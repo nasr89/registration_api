@@ -64,3 +64,22 @@ exports.login = async (req, res) => {
     console.log(err);
   }
 };
+
+exports.forgotpassword = async (req,res) => {
+  try {
+    // 1- Check if the user with the provided email exist
+    //const user = await User.findOne({$or: [{email: req.body.email},{phoneNumber: req.body.phoneNumber}]})
+     const user = await User.findOne({email: req.body.email});
+
+     if(!user){
+      return res.status(404).json({message: "The user with the provided email does not exist."})
+     }
+    
+    // 2- create the reset token to be sended via email
+     const resetToken = user.generatePasswordResetToken();
+     await user.save({ validateBeforeSave: false});
+    //3- send the token via the email
+  }catch(err){
+    console.log(err);
+  }
+}
